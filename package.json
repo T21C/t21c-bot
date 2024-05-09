@@ -11,7 +11,7 @@
     "jejudo": "^0.1.5"
   },
   "devDependencies": {
-    "eslint": "^8.36.0",
+    "eslint": "^9.0.0",
     "nodemon": "^2.0.21"
   },
   "scripts": {
