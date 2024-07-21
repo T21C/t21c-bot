@@ -8,7 +8,7 @@
     "@sentry/tracing": "^7.45.0",
     "axios": "^1.3.4",
     "discord.js": "^14.8.0",
-    "jejudo": "^0.1.5"
+    "jejudo": "^0.2.0"
   },
   "devDependencies": {
     "eslint": "^8.36.0",
