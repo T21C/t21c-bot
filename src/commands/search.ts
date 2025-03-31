@@ -49,7 +49,10 @@ module.exports = {
                 seed: null
             }
 
-            const response = await levelUtils.getTUFApi('levels/', queryOptions)
+            const response = await levelUtils.getTUFApi(
+                'database/levels',
+                queryOptions
+            )
             const results = response.data.results
 
             if (response.data.count === 0) {
@@ -58,15 +61,11 @@ module.exports = {
             }
 
             if (response.data.count === 1) {
-                const passesResponse = await levelUtils.getTUFApi('passes/', {
-                    levelId: response.data.results[0].id,
-                    sort: 'SCORE_DESC'
-                })
-                const passesData = passesResponse.data
+                const passesData = response.data.results[0].passes
 
                 interaction.editReply({
                     embeds: [
-                        levelUtils.createLevelEmbed(
+                        await levelUtils.createLevelEmbed(
                             results[0],
                             passesData,
                             interaction
@@ -108,7 +107,7 @@ module.exports = {
 
                     queryOptions.offset = offset
                     const newResponse = await levelUtils.getTUFApi(
-                        'levels/',
+                        'database/levels',
                         queryOptions
                     )
                     const newResults = newResponse.data.results
@@ -172,7 +171,7 @@ module.exports = {
 
                     queryOptions.offset = (newPage - 1) * 25
                     const newResponse = await levelUtils.getTUFApi(
-                        'levels/',
+                        'database/levels',
                         queryOptions
                     )
                     const newResults = newResponse.data.results
@@ -205,7 +204,7 @@ module.exports = {
                     }
 
                     const newResponse = await levelUtils.getTUFApi(
-                        'levels/',
+                        'database/levels',
                         queryOptions
                     )
                     const newResults = newResponse.data.results

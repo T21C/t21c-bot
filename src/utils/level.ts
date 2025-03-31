@@ -10,68 +10,85 @@ import {
 } from 'discord.js'
 import axios from 'axios'
 import * as fs from 'fs'
-import { apiHost } from '../config.json'
+import { apiHost, ytApiKey } from '../config.json'
 
 import info from '../info.json'
 const emojiData = info['emojis']
 const colorData = info['pguDiffColors']
 
-export const createLevelEmbed = (levelData, passesData, interaction) => {
-    let videoId
-    if (!!levelData.vidLink && levelData.vidLink !== '-5') {
-        const parsedUrl = new URL(levelData.vidLink)
-        if (['youtube.com', 'www.youtube.com'].includes(parsedUrl.host))
-            videoId = parsedUrl.searchParams.get('v')
-        if (['youtu.be'].includes(parsedUrl.hostname))
-            videoId = parsedUrl.pathname.slice(1)
-        if (parsedUrl.pathname.includes('shorts'))
-            videoId = parsedUrl.pathname.split('/')[2]
+export const getVideoLinkType = (link) => {
+    const ytShortUrlRegex = /youtu\.be\/([a-zA-Z0-9_-]{11})/
+    const ytLongUrlRegex = /youtube\.com\/.*[?&]v=([a-zA-Z0-9_-]{11})/
+
+    const ytShortMatch = link.match(ytShortUrlRegex)
+    const ytLongMatch = link.match(ytLongUrlRegex)
+
+    if (ytShortMatch || ytLongMatch) return 'YouTube'
+
+    const bilibiliRegex =
+        /https?:\/\/(www\.)?bilibili\.com\/video\/(BV[a-zA-Z0-9]+)\/?/
+    if (link.match(bilibiliRegex)) return 'BiliBili'
+
+    return 'Unknown'
+}
+
+export const createLevelEmbed = async (levelData, passesData, interaction) => {
+    const ytShortUrlRegex = /youtu\.be\/([a-zA-Z0-9_-]{11})/
+    const ytLongUrlRegex = /youtube\.com\/.*[?&]v=([a-zA-Z0-9_-]{11})/
+
+    const ytShortMatch = levelData.videoLink.match(ytShortUrlRegex)
+    const ytLongMatch = levelData.videoLink.match(ytLongUrlRegex)
+    let videoId = ytShortMatch
+        ? ytShortMatch[1]
+        : ytLongMatch
+          ? ytLongMatch[1]
+          : null
+    let levelThumbnail =
+        'https://media.discordapp.net/attachments/1142069717612372098/1146082697198960650/dsdadd.png'
+
+    if (videoId) {
+        const apiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${ytApiKey}&part=snippet,contentDetails`
+        const ytVideoRequest = await axios.get(apiUrl)
+        const data = ytVideoRequest.data
+
+        levelThumbnail =
+            data.items[0].snippet.thumbnails?.maxres?.url ||
+            data.items[0].snippet.thumbnails?.high?.url ||
+            data.items[0].snippet.thumbnails?.medium?.url ||
+            data.items[0].snippet.thumbnails?.default?.url
     } else {
-        videoId = null
-        levelData.vidLink = null
+        const urlRegex =
+            /https?:\/\/(www\.)?bilibili\.com\/video\/(BV[a-zA-Z0-9]+)\/?/
+        const match = levelData.videoLink.match(urlRegex)
+        const videoId = match ? match[2] : null
+
+        if (videoId) {
+            levelThumbnail = await axios
+                .get(
+                    `https://api.tuforums.com/v2/media/bilibili/?bvid=${videoId}`
+                )
+                .then((r) => r.data.data.pic)
+        }
     }
 
-    const color = !colorData[levelData.pguDiff]
+    const color = !colorData[levelData.difficulty.name]
         ? colorData['0']
-        : colorData[levelData.pguDiff]
+        : colorData[levelData.difficulty.name]
 
     const diffSet = getDiffSet(interaction.user.id)
 
-    let pgu = false
-
-    if (levelData.pguDiff === '727') {
-        levelData.pguDiff = 'grande'
-    } else if (levelData.pguDiff === '64') {
-        levelData.pguDiff = 'desertbus'
-    } else if (levelData.pguDiff === '0.9') {
-        levelData.pguDiff = 'epic'
-    } else if (levelData.pguDiff === '-22') {
-        levelData.pguDiff = 'mappack'
-    } else if (!isNaN(+levelData.pguDiff)) {
-        if (+levelData.pguDiff >= 21.5) {
-            pgu = false
-        }
-    } else if (diffSet[levelData.pguDiff]) {
-        pgu = true
-    }
-
     let diffEmoji
 
-    if (pgu === false) {
-        diffEmoji = !diffSet[levelData.pguDiff]
-            ? levelData.pguDiff.toString()
-            : interaction.client.emojis.cache
-                  .get(diffSet[levelData.pguDiff])
-                  .toString()
-    } else {
-        diffEmoji = `${interaction.client.emojis.cache
-            .get(diffSet[levelData.pguDiff])
-            .toString()} | ${interaction.client.emojis.cache
-            .get(emojiData['diff'][levelData.diff])
+    diffEmoji = `${interaction.client.emojis.cache
+        .get(diffSet[levelData.difficulty.name])
+        .toString()}`
+    if (emojiData['diff'][levelData.difficulty.legacy]) {
+        diffEmoji += ` | ${interaction.client.emojis.cache
+            .get(emojiData['diff'][levelData.difficulty.legacy])
             .toString()}`
     }
 
-    const bestPassData = passesData.results[0]
+    const bestPassData = passesData.sort((a, b) => b.scoreV2 - a.scoreV2)
 
     const levelEmbed = new EmbedBuilder()
         .setColor(color)
@@ -85,15 +102,11 @@ export const createLevelEmbed = (levelData, passesData, interaction) => {
             },
             {
                 name: 'Clears',
-                value: `${passesData.count}`,
+                value: `${passesData.length}`,
                 inline: true
             }
         )
-        .setImage(
-            !videoId
-                ? 'https://media.discordapp.net/attachments/1142069717612372098/1146082697198960650/dsdadd.png'
-                : `https://i.ytimg.com/vi/${videoId}/original.jpg`
-        )
+        .setImage(levelThumbnail)
         .setTimestamp()
         .setFooter({ text: `ID: ${levelData.id}` })
 
@@ -115,10 +128,10 @@ export const createLevelButtons = (levelData) => {
         new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents([
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Link)
-                .setLabel('YouTube')
+                .setLabel(getVideoLinkType(levelData.videoLink))
                 .setEmoji({ id: emojiData['levelData']['youtube'] })
-                .setURL(levelData.vidLink || 'https://t21c-adofai.kro.kr')
-                .setDisabled(!levelData.vidLink),
+                .setURL(levelData.videoLink || 'https://t21c-adofai.kro.kr')
+                .setDisabled(!levelData.videoLink),
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Link)
                 .setLabel('Download')
@@ -137,8 +150,8 @@ export const createLevelButtons = (levelData) => {
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Link)
                 .setLabel('TUF')
-                .setEmoji({ id: '1168507226521079889' })
-                .setURL(`https://tuforums.com/leveldetail?id=${levelData.id}`)
+                .setEmoji({ id: '1215962674924355656' })
+                .setURL(`https://tuforums.com/levels/${levelData.id}`)
             // new ButtonBuilder()
             // 	.setStyle(ButtonStyle.Link)
             // 	.setEmoji(':arrow_forward:')
@@ -158,21 +171,11 @@ export const createSearchSelectList = (
     const selectOptions: RestOrArray<SelectMenuComponentOptionData> = []
 
     for (const levelData of levelList) {
-        if (levelData.pguDiff === '727') {
-            levelData.pguDiff = 'grande'
-        } else if (levelData.pguDiff === '64') {
-            levelData.pguDiff = 'desertbus'
-        } else if (levelData.pguDiff === '0.9') {
-            levelData.pguDiff = 'epic'
-        } else if (levelData.pguDiff === '-22') {
-            levelData.pguDiff = 'mappack'
-        }
-
         const diffSet = getDiffSet(userId)
 
-        const emoji = !diffSet[levelData.pguDiff]
+        const emoji = !diffSet[levelData.difficulty.name]
             ? '🔢'
-            : { id: diffSet[levelData.pguDiff] }
+            : { id: diffSet[levelData.difficulty.name] }
 
         const levelName = `${levelData.artist} - ${levelData.song}`
         let desc
