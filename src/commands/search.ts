@@ -77,7 +77,8 @@ module.exports = {
             }
 
             let offset = 0
-            const count = response.data.count
+            // const count = response.data.count
+            const count = response.data.results.length
 
             const msg = await interaction.editReply(
                 levelUtils.createSearchSelectList(
@@ -147,9 +148,7 @@ module.exports = {
                                 modalInt.user.id === interaction.user.id,
                             time: 30000
                         })
-                    } catch (e) {
-                        return
-                    }
+                    } catch (e) {}
 
                     const newPage =
                         modalResp.fields.getTextInputValue('pageNum')
