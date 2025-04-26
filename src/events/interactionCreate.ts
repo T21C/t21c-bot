@@ -21,6 +21,7 @@ module.exports = {
                         try {
                             handler.execute(interaction)
                         } catch (error) {
+                            interaction.channel.send(`error!!!! ${error}`)
                             console.error(`Error handling ${name}`)
                             console.error(error)
                         }
@@ -29,6 +30,7 @@ module.exports = {
                     try {
                         handler.execute(interaction)
                     } catch (error) {
+                        interaction.channel.send(`error!!!! ${error}`)
                         console.error(`Error handling ${name}`)
                         console.error(error)
                     }
@@ -51,6 +53,7 @@ module.exports = {
                         try {
                             handler.execute(interaction)
                         } catch (error) {
+                            interaction.channel.send(`error!!!! ${error}`)
                             console.error(`Error handling ${name}`)
                             console.error(error)
                         }
@@ -59,6 +62,7 @@ module.exports = {
                     try {
                         handler.execute(interaction)
                     } catch (error) {
+                        interaction.channel.send(`error!!!! ${error}`)
                         console.error(`Error handling ${name}`)
                         console.error(error)
                     }
@@ -90,6 +94,7 @@ module.exports = {
                     try {
                         command.execute(interaction)
                     } catch (error) {
+                        interaction.channel.send(`error!!!! ${error}`)
                         console.error(
                             `Error executing ${interaction.commandName}`
                         )
@@ -100,6 +105,7 @@ module.exports = {
                 try {
                     command.execute(interaction)
                 } catch (error) {
+                    interaction.channel.send(`error!!!! ${error}`)
                     console.error(`Error executing ${interaction.commandName}`)
                     console.error(error)
                 }
