@@ -1,4 +1,4 @@
-import { Events, Interaction } from 'discord.js'
+import { codeBlock, Events, Interaction } from 'discord.js'
 import { permsChecker } from '../utils/message'
 
 module.exports = {
@@ -21,7 +21,15 @@ module.exports = {
                         try {
                             handler.execute(interaction)
                         } catch (error) {
-                            interaction.channel.send(`error!!!! ${error}`)
+                            if (interaction.deferred) {
+                                interaction.editReply(
+                                    `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                                )
+                            } else {
+                                interaction.reply(
+                                    `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                                )
+                            }
                             console.error(`Error handling ${name}`)
                             console.error(error)
                         }
@@ -30,7 +38,15 @@ module.exports = {
                     try {
                         handler.execute(interaction)
                     } catch (error) {
-                        interaction.channel.send(`error!!!! ${error}`)
+                        if (interaction.deferred) {
+                            interaction.editReply(
+                                `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                            )
+                        } else {
+                            interaction.reply(
+                                `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                            )
+                        }
                         console.error(`Error handling ${name}`)
                         console.error(error)
                     }
@@ -53,7 +69,15 @@ module.exports = {
                         try {
                             handler.execute(interaction)
                         } catch (error) {
-                            interaction.channel.send(`error!!!! ${error}`)
+                            if (interaction.deferred) {
+                                interaction.editReply(
+                                    `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                                )
+                            } else {
+                                interaction.reply(
+                                    `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                                )
+                            }
                             console.error(`Error handling ${name}`)
                             console.error(error)
                         }
@@ -62,7 +86,15 @@ module.exports = {
                     try {
                         handler.execute(interaction)
                     } catch (error) {
-                        interaction.channel.send(`error!!!! ${error}`)
+                        if (interaction.deferred) {
+                            interaction.editReply(
+                                `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                            )
+                        } else {
+                            interaction.reply(
+                                `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                            )
+                        }
                         console.error(`Error handling ${name}`)
                         console.error(error)
                     }
@@ -94,7 +126,15 @@ module.exports = {
                     try {
                         command.execute(interaction)
                     } catch (error) {
-                        interaction.channel.send(`error!!!! ${error}`)
+                        if (interaction.deferred) {
+                            interaction.editReply(
+                                `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                            )
+                        } else {
+                            interaction.reply(
+                                `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                            )
+                        }
                         console.error(
                             `Error executing ${interaction.commandName}`
                         )
@@ -105,7 +145,15 @@ module.exports = {
                 try {
                     command.execute(interaction)
                 } catch (error) {
-                    interaction.channel.send(`error!!!! ${error}`)
+                    if (interaction.deferred) {
+                        interaction.editReply(
+                            `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                        )
+                    } else {
+                        interaction.reply(
+                            `Error! <@503447721839951884> check this\n${codeBlock(error.message)}`
+                        )
+                    }
                     console.error(`Error executing ${interaction.commandName}`)
                     console.error(error)
                 }
