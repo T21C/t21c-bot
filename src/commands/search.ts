@@ -7,11 +7,13 @@ import {
     InteractionContextType,
     ApplicationIntegrationType,
     ChatInputCommandInteraction,
-    StringSelectMenuInteraction
+    StringSelectMenuInteraction,
+    ActionRow
 } from 'discord.js'
 import levelUtils from '../utils/level'
 import messageUtils from '../utils/message'
 import { getRandomInt } from '../utils/general'
+import { MessageActionRowComponent } from 'discord.js'
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -61,14 +63,13 @@ module.exports = {
             }
 
             if (response.data.count === 1) {
-                const passesData = response.data.results[0].passes
+                const passesData = response.data.results[0].level.passes
 
                 interaction.editReply({
                     embeds: [
                         await levelUtils.createLevelEmbed(
                             results[0],
-                            passesData,
-                            interaction
+                            passesData
                         )
                     ],
                     components: levelUtils.createLevelButtons(results[0])
@@ -223,6 +224,11 @@ module.exports = {
 
             collector.on('end', async () => {
                 const message = await msg.fetch()
+                if (
+                    !Array.isArray(message.components) ||
+                    !message.components.every((c) => c instanceof ActionRow)
+                )
+                    return
                 if (message.components.length !== 3) return
                 interaction.editReply({
                     components: messageUtils.disableComponents(

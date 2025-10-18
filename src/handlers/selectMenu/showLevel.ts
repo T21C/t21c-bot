@@ -15,12 +15,11 @@ module.exports = {
         )
         const levelData = response.data
 
-        const passesData = levelData.passes
+        const passesData = levelData.level.passes
 
         const levelEmbed = await levelUtils.createLevelEmbed(
             levelData,
-            passesData,
-            interaction
+            passesData
         )
         const levelButtonsRow = levelUtils.createLevelButtons(levelData)
 

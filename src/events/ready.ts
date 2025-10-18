@@ -114,14 +114,14 @@ module.exports = {
 
         const customStatus: ActivityOptions[] = [
             { name: 'TUF', type: ActivityType.Watching },
-            { name: 'ADOFAI', type: ActivityType.Competing },
-            { name: 'ADOfAI', type: ActivityType.Playing },
+            { name: 'ADOFAI', type: ActivityType.Playing },
             { name: 'gaming since 2022!', type: ActivityType.Custom }
         ]
         let curStatusIndex = 0
         setInterval(() => {
             curStatusIndex++
-            client.user?.setPresence({
+            if (curStatusIndex == customStatus.length) curStatusIndex = 0
+            client.user.setPresence({
                 activities: [customStatus[curStatusIndex]]
             })
         }, 60000)

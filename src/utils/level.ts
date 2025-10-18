@@ -32,117 +32,76 @@ export const getVideoLinkType = (link) => {
     return 'Unknown'
 }
 
-export const createLevelEmbed = async (levelData, passesData, interaction) => {
-    const ytShortUrlRegex = /youtu\.be\/([a-zA-Z0-9_-]{11})/
-    const ytLongUrlRegex = /youtube\.com\/.*[?&]v=([a-zA-Z0-9_-]{11})/
+export const createLevelEmbed = async (levelData, passesData) => {
+    let levelThumbnail = `https://api.tuforums.com/v2/media/thumbnail/level/${levelData.level.id}/`
 
-    const ytShortMatch = levelData.videoLink.match(ytShortUrlRegex)
-    const ytLongMatch = levelData.videoLink.match(ytLongUrlRegex)
-    let videoId = ytShortMatch
-        ? ytShortMatch[1]
-        : ytLongMatch
-          ? ytLongMatch[1]
-          : null
-    let levelThumbnail =
-        'https://media.discordapp.net/attachments/1142069717612372098/1146082697198960650/dsdadd.png'
+    const color = levelData.level.difficulty.color
+    const firstPassData = passesData.sort(
+        (a, b) =>
+            new Date(a.vidUploadTime).getTime() -
+            new Date(b.vidUploadTime).getTime()
+    )[0]
+    const scorePassData = passesData.sort((a, b) => b.scoreV2 - a.scoreV2)[0]
+    const accPassData = passesData.sort((a, b) => b.accuracy - a.accuracy)[0]
 
-    if (videoId) {
-        const apiUrl = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${ytApiKey}&part=snippet,contentDetails`
-        const ytVideoRequest = await axios.get(apiUrl)
-        const data = ytVideoRequest.data
-
-        levelThumbnail =
-            data.items[0].snippet.thumbnails?.maxres?.url ||
-            data.items[0].snippet.thumbnails?.high?.url ||
-            data.items[0].snippet.thumbnails?.medium?.url ||
-            data.items[0].snippet.thumbnails?.default?.url
-    } else {
-        const urlRegex =
-            /https?:\/\/(www\.)?bilibili\.com\/video\/(BV[a-zA-Z0-9]+)\/?/
-        const match = levelData.videoLink.match(urlRegex)
-        const videoId = match ? match[2] : null
-
-        if (videoId) {
-            levelThumbnail = await axios
-                .get(
-                    `https://api.tuforums.com/v2/media/bilibili/?bvid=${videoId}`
-                )
-                .then((r) => r.data.data.pic)
-        }
-    }
-
-    const color = !colorData[levelData.difficulty.name]
-        ? colorData['0']
-        : colorData[levelData.difficulty.name]
-
-    const diffSet = getDiffSet(interaction.user.id)
-
-    let diffEmoji
-
-    diffEmoji = `${interaction.client.emojis.cache
-        .get(diffSet[levelData.difficulty.name])
-        .toString()}`
-    if (emojiData['diff'][levelData.difficulty.legacy]) {
-        diffEmoji += ` | ${interaction.client.emojis.cache
-            .get(emojiData['diff'][levelData.difficulty.legacy])
-            .toString()}`
-    }
-
-    const bestPassData = passesData.sort((a, b) => b.scoreV2 - a.scoreV2)
+    const formattedCreator = formatCreatorDisplay(levelData.level)
 
     const levelEmbed = new EmbedBuilder()
         .setColor(color)
-        .setTitle(`${levelData.artist} - ${levelData.song}`)
-        .setDescription(`Level by ${levelData.creator}`)
+        .setTitle(`${levelData.level.artist} - ${levelData.level.song}`)
+        .setDescription(`Level by ${formattedCreator}`)
+        .setImage(levelThumbnail)
+        .setTimestamp()
+        .setFooter({ text: `ID: ${levelData.level.id}` })
         .addFields(
+            { name: 'Tiles', value: `${levelData.tilecount}`, inline: true },
+            { name: 'BPM', value: `${levelData.bpm}`, inline: true }
+        )
+
+    if (passesData.length > 0) {
+        levelEmbed.addFields(
             {
-                name: 'Difficulty',
-                value: diffEmoji,
+                name: 'First Clear',
+                value: `${firstPassData.player.name} (<t:${new Date(firstPassData.vidUploadTime).getTime() / 1000}:f>)`,
                 inline: true
             },
             {
-                name: 'Clears',
-                value: `${passesData.length}`,
+                name: 'Highest Accuracy',
+                value: `${accPassData.player.name} (${Math.floor(accPassData.judgements.accuracy * 10000) / 100}%)`,
+                inline: true
+            },
+            {
+                name: 'Highest Score',
+                value: `${scorePassData.player.name} (${scorePassData.scoreV2})`,
                 inline: true
             }
         )
-        .setImage(levelThumbnail)
-        .setTimestamp()
-        .setFooter({ text: `ID: ${levelData.id}` })
-
-    if (passesData.count > 0) {
-        levelEmbed.addFields({
-            name: 'Best Clear',
-            value: `${bestPassData.player} (${
-                Math.round(bestPassData.scoreV2 * 100) / 100
-            })`,
-            inline: true
-        })
     }
 
     return levelEmbed
 }
 
 export const createLevelButtons = (levelData) => {
+    levelData = levelData.level
     const levelButtonsRow =
         new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents([
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Link)
                 .setLabel(getVideoLinkType(levelData.videoLink))
                 .setEmoji({ id: emojiData['levelData']['youtube'] })
-                .setURL(levelData.videoLink || 'https://t21c-adofai.kro.kr')
+                .setURL(levelData.videoLink || 'https://tuforums.com')
                 .setDisabled(!levelData.videoLink),
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Link)
                 .setLabel('Download')
                 .setEmoji({ id: emojiData['levelData']['download'] })
-                .setURL(levelData.dlLink || 'https://t21c-adofai.kro.kr')
+                .setURL(levelData.dlLink || 'https://tuforums.com')
                 .setDisabled(!levelData.dlLink),
             new ButtonBuilder()
                 .setStyle(ButtonStyle.Link)
                 .setLabel('Workshop')
                 .setEmoji({ id: emojiData['levelData']['workshop'] })
-                .setURL(levelData.workshopLink || 'https://t21c-adofai.kro.kr')
+                .setURL(levelData.workshopLink || 'https://tuforums.com')
                 .setDisabled(!levelData.workshopLink)
         ])
     const directAdofaiRow =
@@ -171,11 +130,7 @@ export const createSearchSelectList = (
     const selectOptions: RestOrArray<SelectMenuComponentOptionData> = []
 
     for (const levelData of levelList) {
-        const diffSet = getDiffSet(userId)
-
-        const emoji = !diffSet[levelData.difficulty.name]
-            ? '🔢'
-            : { id: diffSet[levelData.difficulty.name] }
+        const emoji = emojiData['pguDiff'][levelData.difficulty.name] || '🔢'
 
         const levelName = `${levelData.artist} - ${levelData.song}`
         let desc
@@ -270,24 +225,64 @@ export const getTUFApi = async (endpoint, queryOptions?) => {
     })
 }
 
-export const getDiffSet = (userId) => {
-    const userPrefs = JSON.parse(fs.readFileSync('users.json', 'utf8'))
-    if (!userPrefs[userId]) {
-        userPrefs[userId] = { iconset: 'default' }
-        fs.writeFileSync('users.json', JSON.stringify(userPrefs, null, 2))
+export const formatCreatorDisplay = (level) => {
+    // If team exists, it takes priority
+    if (!level) return ''
+
+    if (level.team) {
+        return level.team
     }
 
-    const iconPref = userPrefs[userId]['iconset']
-    let diffSetName
-    switch (iconPref) {
-        case 'saph':
-            diffSetName = 'pguDiffSaph'
-            break
-        case 'default':
-        default:
-            diffSetName = 'pguDiff'
+    // If no credits, fall back to creator field
+    if (!level.levelCredits || level.levelCredits.length === 0) {
+        return 'No credits'
     }
-    return emojiData[diffSetName]
+
+    // Group credits by role
+    const creditsByRole = level.levelCredits.reduce((acc, credit) => {
+        const role = credit.role.toLowerCase()
+        if (!acc[role]) {
+            acc[role] = []
+        }
+        const creatorName =
+            credit.creator.aliases?.length > 0
+                ? credit.creator.aliases[0]
+                : credit.creator.name
+        acc[role].push(creatorName)
+        return acc
+    }, {})
+
+    const charters = creditsByRole['charter'] || []
+    const vfxers = creditsByRole['vfxer'] || []
+
+    // Handle different cases based on number of credits
+    if (level.levelCredits.length >= 3) {
+        const parts = []
+        if (charters.length > 0) {
+            parts.push(
+                charters.length === 1
+                    ? charters[0]
+                    : `${charters[0]} & ${charters.length - 1} more`
+            )
+        }
+        if (vfxers.length > 0) {
+            parts.push(
+                vfxers.length === 1
+                    ? vfxers[0]
+                    : `${vfxers[0]} & ${vfxers.length - 1} more`
+            )
+        }
+        return parts.join(' | ')
+    } else if (level.levelCredits.length === 2) {
+        if (charters.length === 2) {
+            return `${charters[0]} & ${charters[1]}`
+        }
+        if (charters.length === 1 && vfxers.length === 1) {
+            return `${charters[0]} | ${vfxers[0]}`
+        }
+    }
+
+    return level.levelCredits[0]?.creator.name || 'No credits'
 }
 
 export default {
@@ -295,5 +290,5 @@ export default {
     createLevelButtons,
     createSearchSelectList,
     getTUFApi,
-    getDiffSet
+    formatCreatorDisplay
 }
