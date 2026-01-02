@@ -24,17 +24,21 @@ module.exports = {
         const member = interaction.guild.members.cache.get(user.id)
         if (!member) {
             return interaction.reply({
-                ephemeral: true,
-                content: 'The user is not in TUF.'
+                content: 'The user is not in TUF.',
+                ephemeral: true
             })
         }
         if (!member.voice) {
             return interaction.reply({
-                content: 'The member is not in a voice channel.'
+                content: 'The member is not in a voice channel.',
+                ephemeral: true
             })
         }
 
         member.voice.setDeaf(true, `/deafen by ${interaction.user.username}`)
-        return interaction.reply({ content: `${user} has been deafened.` })
+        return interaction.reply({
+            content: `${user} has been deafened.`,
+            ephemeral: true
+        })
     }
 }
