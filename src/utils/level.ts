@@ -13,6 +13,7 @@ import * as fs from 'fs'
 import { apiHost, ytApiKey } from '../config.json'
 
 import info from '../info.json'
+import { convertFromPUA } from './general'
 const emojiData = info['emojis']
 const colorData = info['pguDiffColors']
 
@@ -53,10 +54,10 @@ export const createLevelEmbed = async (levelData, passesData) => {
         .setImage(levelThumbnail)
         .setTimestamp()
         .setFooter({ text: `ID: ${levelData.level.id}` })
-        .addFields(
-            { name: 'Tiles', value: `${levelData.tilecount}`, inline: true },
-            { name: 'BPM', value: `${levelData.bpm}`, inline: true }
-        )
+    // .addFields(
+    //     { name: 'Tiles', value: `${levelData.tilecount}`, inline: true },
+    //     { name: 'BPM', value: `${levelData.bpm}`, inline: true }
+    // )
 
     if (passesData.length > 0) {
         levelEmbed.addFields(
@@ -130,17 +131,19 @@ export const createSearchSelectList = (
     const selectOptions: RestOrArray<SelectMenuComponentOptionData> = []
 
     for (const levelData of levelList) {
-        const emoji = emojiData['pguDiff'][levelData.difficulty.name] || '🔢'
+        const emoji = levelData.difficulty.emoji
 
         const levelName = `${levelData.artist} - ${levelData.song}`
         let desc
+
+        const creator = convertFromPUA(levelData.creator)
         if (levelData.creator.length > 90 - levelData.id.toString().length) {
-            desc = `by ${levelData.creator.slice(
+            desc = `by ${creator.slice(
                 0,
                 88 - levelData.id.toString().length
             )} | ID: ${levelData.id}`
         } else {
-            desc = `by ${levelData.creator} | ID: ${levelData.id}`
+            desc = `by ${creator} | ID: ${levelData.id}`
         }
         selectOptions.push({
             label: levelName.slice(0, 100),
@@ -186,9 +189,9 @@ export const createSearchSelectList = (
                     },
                     {
                         label: 'Random',
-                        value: 'RANDOM',
+                        value: 'RANDOM_DESC',
                         emoji: { id: emojiData['sort']['RANDOM'] },
-                        default: sort === 'RANDOM'
+                        default: sort === 'RANDOM_DESC'
                     }
                 ])
             ]),

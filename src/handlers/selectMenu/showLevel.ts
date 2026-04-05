@@ -10,12 +10,13 @@ module.exports = {
 
         const levelId = interaction.values[0].split('_')[1]
 
-        const response = await levelUtils.getTUFApi(
+        const levelResponse = await levelUtils.getTUFApi(
             `database/levels/${levelId}`
         )
-        const levelData = response.data
-
-        const passesData = levelData.level.passes
+        const passResponse = await levelUtils.getTUFApi(`database/passes/level/${levelId}`)
+        
+        const levelData = levelResponse.data
+        const passesData = passResponse.data
 
         const levelEmbed = await levelUtils.createLevelEmbed(
             levelData,

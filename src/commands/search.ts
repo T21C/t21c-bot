@@ -57,12 +57,12 @@ module.exports = {
             )
             const results = response.data.results
 
-            if (response.data.count === 0) {
+            if (response.data.total === 0) {
                 interaction.editReply('No levels were found.')
                 return
             }
 
-            if (response.data.count === 1) {
+            if (response.data.total === 1) {
                 const passesData = response.data.results[0].level.passes
 
                 interaction.editReply({
@@ -78,8 +78,7 @@ module.exports = {
             }
 
             let offset = 0
-            // const count = response.data.count
-            const count = response.data.results.length
+            const count = response.data.total
 
             const msg = await interaction.editReply(
                 levelUtils.createSearchSelectList(
@@ -196,12 +195,6 @@ module.exports = {
 
                     const sortOption = i.values[0]
                     queryOptions.sort = sortOption
-                    if (sortOption === 'RANDOM') {
-                        queryOptions.seed = getRandomInt(
-                            Number.MIN_SAFE_INTEGER,
-                            Number.MAX_SAFE_INTEGER
-                        )
-                    }
 
                     const newResponse = await levelUtils.getTUFApi(
                         'database/levels',

@@ -1,8 +1,5 @@
 import {
     SlashCommandBuilder,
-    EmbedBuilder,
-    PermissionFlagsBits,
-    Interaction,
     ChatInputCommandInteraction
 } from 'discord.js'
 import '../index'

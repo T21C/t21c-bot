@@ -30,9 +30,10 @@ module.exports = {
 
         const id = interaction.options.getNumber('id')
 
-        let response
+        let levelResponse, passResponse
         try {
-            response = await levelUtils.getTUFApi(`database/levels/${id}`)
+            levelResponse = await levelUtils.getTUFApi(`database/levels/${id}`)
+            passResponse = await levelUtils.getTUFApi(`database/passes/level/${id}`)
         } catch (err) {
             if (err.response.status === 404) {
                 await interaction.editReply('The level could not be found.')
@@ -41,9 +42,10 @@ module.exports = {
                 console.error(err)
             }
         }
-        const levelData = response.data
-
-        const passesData = response.data.level.passes
+        const levelData = levelResponse.data
+        const passesData = passResponse.data
+        
+        console.log(passResponse)
 
         const levelEmbed = await levelUtils.createLevelEmbed(
             levelData,

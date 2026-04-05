@@ -14,7 +14,7 @@ module.exports = {
             option
                 .setName('judgementlist')
                 .setDescription(
-                    'The list of judgements in T21+C order, split with spaces'
+                    'The list of judgements in order, split with spaces'
                 )
                 .setRequired(true)
         )
@@ -35,10 +35,9 @@ module.exports = {
 
         let judgements
         judgements = judgementList.split(' ')
-        if (judgements.length !== 7) {
+        if (judgements.length < 7 || judgements.length > 9) {
             await interaction.reply({
-                content:
-                    'Please split judgements with SPACES, and only place 7 numbers.',
+                content: 'Invalid length.',
                 ephemeral: true
             })
             return
@@ -47,7 +46,7 @@ module.exports = {
         const isNum = judgements.every((num) => !isNaN(num))
         if (!isNum) {
             await interaction.reply({
-                content: 'Please put judgement numbers here, not rubbish.',
+                content: 'Only numbers are accepted.',
                 ephemeral: true
             })
             return
@@ -57,7 +56,7 @@ module.exports = {
         const isPositive = judgements.every((num) => num >= 0)
         if (!isPositive) {
             await interaction.reply({
-                content: 'Why would you enter negative values????????',
+                content: 'Negative value detected.',
                 ephemeral: true
             })
             return
@@ -66,22 +65,54 @@ module.exports = {
         const isInt = judgements.every((num) => num % 1 === 0)
         if (!isInt) {
             await interaction.reply({
-                content: 'Why would you enter decimals????',
+                content: 'Decimal number detected.',
                 ephemeral: true
             })
             return
         }
 
-        const tEarly = judgements[0]
-        const early = judgements[1]
-        const earlyP = judgements[2]
-        const perfect = judgements[3]
-        const lateP = judgements[4]
-        const late = judgements[5]
-        const tLate = judgements[6]
+        let overload, tEarly, early, earlyP, perfect, lateP, late, tLate, miss
+        if (judgements.length == 7) {
+            tEarly = judgements[0]
+            early = judgements[1]
+            earlyP = judgements[2]
+            perfect = judgements[3]
+            lateP = judgements[4]
+            late = judgements[5]
+            tLate = judgements[6]
+        }
+        if (judgements.legnth == 8) {
+            tEarly = judgements[0]
+            early = judgements[1]
+            earlyP = judgements[2]
+            perfect = judgements[3]
+            lateP = judgements[4]
+            late = judgements[5]
+            tLate = judgements[6]
+            miss = judgements[7]
+        }
+        if (judgements.length == 9) {
+            overload = judgements[0]
+            tEarly = judgements[1]
+            early = judgements[2]
+            earlyP = judgements[3]
+            perfect = judgements[4]
+            lateP = judgements[5]
+            late = judgements[6]
+            tLate = judgements[7]
+            miss = judgements[8]
+        }
 
         const judgeCount =
-            tEarly + early + earlyP + perfect + lateP + late + tLate
+            (overload || 0) +
+            tEarly +
+            early +
+            earlyP +
+            perfect +
+            lateP +
+            late +
+            tLate +
+            (miss || 0)
 
         const acc =
             Math.round(
@@ -102,7 +133,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setTitle(`X-Accuracy: ${xacc}% | Legacy Accuracy: ${acc}%`)
             .setDescription(
-                `Judgements:\n\n${tEarly} Early!!s\n${early} Early!s\n${earlyP} EPerfect!s\n${perfect} Perfect!s\n${lateP} LPerfect!s\n${late} Late!s\n${tLate} Late!!s`
+                `Judgements:\n\n${overload ? `${overload} Overloads\n` : ''}${tEarly} Early!!s\n${early} Early!s\n${earlyP} EPerfect!s\n${perfect} Perfect!s\n${lateP} LPerfect!s\n${late} Late!s\n${tLate} Late!!s${miss ? `\n${miss} Misses` : ''}`
             )
             .setColor('#2f0565')
         interaction.reply({ embeds: [embed] })

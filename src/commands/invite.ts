@@ -29,7 +29,7 @@ module.exports = {
                 `Bot invite link:\n${interaction.client.generateInvite({
                     permissions: [PermissionFlagsBits.Administrator],
                     scopes: [OAuth2Scopes.Bot]
-                })}\n\nTUF Server:\nhttps://discord.gg/8FBDmAPrKe\nTUF Website: <https://tuforums.com>\nTUF Sheet: <https://docs.google.com/spreadsheets/d/1eaA1gyZ-6OWFthHFcVTfLV62U_MbpP6PHc8udN24iCg>`
+                })}\n\nTUF Server:\nhttps://discord.gg/8FBDmAPrKe\nTUF Website: <https://tuforums.com>\n\nADOFAI Community Server: <https://discord.gg/TKdpbUUfUa>`
             )
         interaction.reply({ embeds: [embed], ephemeral: true })
     }
