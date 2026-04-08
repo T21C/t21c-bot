@@ -27,7 +27,11 @@ export const calculatePP = (
     } else if (xacc < 100) {
         xaccMtp = -0.027 / (xacc / 100 - 1.0054) + 0.513
     } else if (xacc === 100) {
-        xaccMtp = 10
+        const a = 2100
+        const k = 14
+        const h = -a / (k - 6)
+
+        xaccMtp = -a / (baseScore - h) + k
     }
 
     //get speed multiplier
@@ -59,7 +63,7 @@ export const calculatePP = (
         let tpDeduc = (startDeduc + endDeduc) / 2
         let am = Math.max(0, misses - Math.floor(tileCount / gmConst))
 
-        if (am <= 0) {
+        if (am === 0) {
             scorev2Mtp = 1
         } else if (am <= start) {
             scorev2Mtp = 1 - startDeduc / 100

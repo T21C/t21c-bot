@@ -21,6 +21,8 @@ import { guildId } from '../config.json'
 import { createNoPermsMessage } from '../utils/message'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import axios from 'axios'
+import { getTUFApi } from '../utils/level'
 
 module.exports = {
     name: Events.ClientReady,
@@ -125,6 +127,52 @@ module.exports = {
                 activities: [customStatus[curStatusIndex]]
             })
         }, 60000)
+
+        // init difficulties
+        const diffData = await getTUFApi('database/difficulties').then(
+            (d) => d.data
+        )
+        const diffHash = await getTUFApi('database/difficulties/hash').then(
+            (d) => d.data
+        )
+
+        fs.writeFileSync(
+            'difficulty.json',
+            JSON.stringify({ difficulty: diffData, hash: diffHash.hash })
+        )
+
+        setInterval(
+            async () => {
+                const oldDiffData = JSON.parse(
+                    fs.readFileSync('difficulty.json', 'utf8')
+                )
+                let diffHash
+                try {
+                    diffHash = await getTUFApi('database/difficulties/hash')
+                } catch (e) {
+                    console.error(e)
+                    return
+                }
+                if (diffHash.data.hash == oldDiffData.hash) return
+
+                let diffData
+                try {
+                    diffData = await getTUFApi('database/difficulties')
+                } catch (e) {
+                    console.error(e)
+                    return
+                }
+
+                fs.writeFileSync(
+                    'difficulty.json',
+                    JSON.stringify({
+                        difficulty: diffData.data,
+                        hash: diffHash.hash
+                    })
+                )
+            },
+            1000 * 60 * 60
+        )
 
         console.log(`Ready! Logged in as ${client.user?.tag}`)
     }

@@ -5,6 +5,7 @@ import {
     ChatInputCommandInteraction
 } from 'discord.js'
 import levelUtils from '../utils/level'
+import { AxiosError } from 'axios'
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -33,7 +34,9 @@ module.exports = {
         let levelResponse, passResponse
         try {
             levelResponse = await levelUtils.getTUFApi(`database/levels/${id}`)
-            passResponse = await levelUtils.getTUFApi(`database/passes/level/${id}`)
+            passResponse = await levelUtils.getTUFApi(
+                `database/passes/level/${id}`
+            )
         } catch (err) {
             if (err.response.status === 404) {
                 await interaction.editReply('The level could not be found.')
@@ -44,7 +47,7 @@ module.exports = {
         }
         const levelData = levelResponse.data
         const passesData = passResponse.data
-        
+
         console.log(passResponse)
 
         const levelEmbed = await levelUtils.createLevelEmbed(
