@@ -4,7 +4,9 @@ import {
     InteractionContextType,
     ApplicationIntegrationType,
     ChatInputCommandInteraction,
-    AttachmentBuilder
+    AttachmentBuilder,
+    Message,
+    MessageFlags
 } from 'discord.js'
 
 module.exports = {
@@ -28,7 +30,7 @@ module.exports = {
         ),
     async execute(interaction: ChatInputCommandInteraction) {
         const file = interaction.options.getAttachment('file', true)
-        await interaction.deferReply()
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
         if (!file.name.endsWith('.adofai')) {
             await interaction.editReply('Error: File must be an ADOFAI file')
