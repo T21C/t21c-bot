@@ -56,6 +56,12 @@ module.exports = {
             return
         }
 
+        if (adofaiData.settings.version !== 18) {
+            await interaction.editReply(
+                'error: unsupported version. only 18 => 15 is supported'
+            )
+        }
+
         adofaiData.settings.version = 15
         adofaiData.actions = adofaiData.actions.map((a) => {
             if (a.eventType !== 'SetFilterAdvanced') return a
